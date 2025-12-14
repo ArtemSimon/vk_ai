@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    # environment:
+    #   - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    #   - N8N_HOST=0.0.0.0
+    #   - N8N_PORT=5678
+    #   - N8N_PROTOCOL=https
+    #   - N8N_RUNNERS_ENABLED=true
+    #   - NODE_ENV=production
+    env_file: '.env'
+    volumes:
+      - n8ndata:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    networks:
+      n8n-net:
+        aliases: [n8n]
+
+
+  cloudpub:
+      image: cloudpub/cloudpub:latest
+      restart: unless-stopped
+      environment:
+        - TOKEN=${CLOUDPUB_TOKEN}
+        - HTTPS=n8n:5678
+      command: run
+      volumes:
+       - cloudpub-config:/home/cloudpub
+      depends_on:
+        - n8n
+      networks:
+        n8n-net:
+          aliases: [cloudpub]
+      
+volumes:
+  n8ndata:
+  cloudpub-config:
+
+networks:
+  n8n-net:
+    name: n8n-net
+
+
+
